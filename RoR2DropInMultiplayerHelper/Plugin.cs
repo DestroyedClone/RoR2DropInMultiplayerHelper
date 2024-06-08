@@ -1,28 +1,13 @@
 ﻿using BepInEx;
+using UnityEngine;
 using RoR2;
 using RoR2.UI;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine;
-using System.Collections.Generic;
-using System.Collections;
 using System.Text.RegularExpressions;
-
-using System;
-using System.Collections.Generic;
-
-using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-using HG;
-
-using RoR2.UI;
-using UnityEngine;
-
-using UnityEngine.Events;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
-using System.Linq;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -102,7 +87,7 @@ namespace RoR2DropInMultiplayerHelper
             orig(message);
             if (!isCapturing && message is Chat.UserChatMessage chatMsg)
             {
-                if (chatMsg.text.ToUpperInvariant() == "/LIST_SURVIVORS")
+                if (chatMsg.sender == LocalUserManager.GetFirstLocalUser().currentNetworkUser && chatMsg.text.ToUpperInvariant() == "/LIST_SURVIVORS")
                 {
                     isCapturing = true;
                     Logger.LogMessage($"Capturing...");
