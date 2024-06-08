@@ -31,8 +31,7 @@ namespace RoR2DropInMultiplayerHelper
         private void SurvivorIconController_Awake(On.RoR2.UI.SurvivorIconController.orig_Awake orig, SurvivorIconController self)
         {
             orig(self);
-            UnityEngine.SceneManagement.Scene scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (scene.name == "lobby" || scene.name == "lobbyinfinitetower") return;
+            if (!Run.instance) return;
             self.hgButton.onClick.RemoveAllListeners(); //???
             //https://forum.unity.com/threads/cannot-implicitly-convert-type-void-to-unityengine-ui-button-buttonclickedevent.1237870/
             var localUser = self.GetLocalUser();
@@ -49,8 +48,7 @@ namespace RoR2DropInMultiplayerHelper
         private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
         {
             orig(self);
-            UnityEngine.SceneManagement.Scene scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (scene.name == "lobby" || scene.name == "lobbyinfinitetower") return;
+            if (!Run.instance) return;
             if (allowedSurvivorDefs.Count == 0) return;
 
             List<SurvivorDef> list = new List<SurvivorDef>();
