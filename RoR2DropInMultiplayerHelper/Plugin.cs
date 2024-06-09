@@ -75,7 +75,6 @@ namespace RoR2DropInMultiplayerHelper
         }
 
         public static bool isCapturing = false;
-        public static string capturedString = null;
         public static List<SurvivorDef> allowedSurvivorDefs = new List<SurvivorDef>();
         public static SurvivorDef[] allowedSurvivorDefsOrdered = new SurvivorDef[] { };
         public static GameObject displayInstance = null;
@@ -104,9 +103,8 @@ namespace RoR2DropInMultiplayerHelper
                 if (baseToken.Contains("(") && baseToken.Contains(")") && baseToken.Contains(", "))
                 {
                     Logger.LogMessage($"Captured message:\n{baseToken}");
-                    capturedString = baseToken;
                     isCapturing = false;
-                    EvaluateCapturedString();
+                    EvaluateCapturedString(baseToken);
                     DisplayCharacters();
                 }
             }
@@ -114,7 +112,7 @@ namespace RoR2DropInMultiplayerHelper
 
         private const string pattern = @"(\w+)\s+\(\w+\)";
 
-        public static void EvaluateCapturedString()
+        public static void EvaluateCapturedString(string capturedString)
         {
             allowedSurvivorDefs.Clear();
             MatchCollection matches = Regex.Matches(capturedString, pattern);
