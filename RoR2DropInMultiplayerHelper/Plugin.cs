@@ -83,9 +83,15 @@ namespace RoR2DropInMultiplayerHelper
         private void Chat_AddMessage_ChatMessageBase(On.RoR2.Chat.orig_AddMessage_ChatMessageBase orig, ChatMessageBase message)
         {
             orig(message);
+            /*Logger.LogMessage($"isUserChat {message is Chat.UserChatMessage} | isSimpleChat {message is Chat.SimpleChatMessage}");
+            if (message is Chat.UserChatMessage wop)
+            {
+                Logger.LogMessage($"Message: {wop.text} | matches Token?: {wop.text.ToUpperInvariant() == "/LIST_SURVIVORS"}");
+                Logger.LogMessage($"Sender: {wop.sender.GetComponent<NetworkUser>().GetNetworkPlayerName()} | Localuser: {LocalUserManager.GetFirstLocalUser().currentNetworkUser.GetNetworkPlayerName()}");
+            }*/
             if (!isCapturing && message is Chat.UserChatMessage chatMsg)
             {
-                if (chatMsg.sender == LocalUserManager.GetFirstLocalUser().currentNetworkUser && chatMsg.text.ToUpperInvariant() == "/LIST_SURVIVORS")
+                if (chatMsg.sender == LocalUserManager.GetFirstLocalUser().currentNetworkUser.gameObject && chatMsg.text.ToUpperInvariant() == "/LIST_SURVIVORS")
                 {
                     isCapturing = true;
                     Logger.LogMessage($"Capturing...");
@@ -133,7 +139,7 @@ namespace RoR2DropInMultiplayerHelper
             //var chose = prefab.transform.Find("SafeArea/LeftHandPanel (Layer: Main)/SurvivorChoiceGrid, Panel/");
             var copy = UnityEngine.Object.Instantiate(prefab);
             copy.GetComponent<CharacterSelectController>().enabled = false;
-            //copy.transform.parent = RoR2.UI.AchievementNotificationPanel.GetUserCanvas(LocalUserManager.GetFirstLocalUser()).transform;
+            copy.transform.parent = RoR2.UI.AchievementNotificationPanel.GetUserCanvas(LocalUserManager.GetFirstLocalUser()).transform;
             copy.AddComponent<DestroyOnEsc>();
             copy.GetComponent<CursorOpener>().enabled = false; //keep or remove?
             copy.transform.Find("BottomSideFade").gameObject.SetActive(false);
@@ -150,6 +156,8 @@ namespace RoR2DropInMultiplayerHelper
             leftPanel.Find("SurvivorInfoPanel, Active (Layer: Secondary)").gameObject.AddComponent<KeepInactive>();
             //leftPanel.Find("").gameObject.SetActive(false);
             //leftPanel.Find("").gameObject.SetActive(false);
+            copy.transform.localPosition = Vector3.zero;
+            copy.transform.localScale = Vector3.one;
             displayInstance = copy;
         }
 
