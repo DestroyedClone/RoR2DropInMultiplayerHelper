@@ -39,6 +39,7 @@ namespace RoR2DropInMultiplayerHelper
         private void Run_onClientGameOverGlobal(Run run, RunReport runReport)
         {
             isCapturing = false;
+            DestroyDisplayInstance();
         }
 
         private void SurvivorIconController_Awake(On.RoR2.UI.SurvivorIconController.orig_Awake orig, SurvivorIconController self)
