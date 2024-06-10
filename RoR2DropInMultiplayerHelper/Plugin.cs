@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Security;
 using System.Security.Permissions;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -26,6 +27,18 @@ namespace RoR2DropInMultiplayerHelper
             On.RoR2.Chat.AddMessage_ChatMessageBase += Chat_AddMessage_ChatMessageBase;
             On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
             On.RoR2.UI.SurvivorIconController.Awake += SurvivorIconController_Awake;
+            Run.onClientGameOverGlobal += Run_onClientGameOverGlobal;
+            Stage.onStageStartGlobal += Stage_onStageStartGlobal;
+        }
+
+        private void Stage_onStageStartGlobal(Stage obj)
+        {
+            isCapturing = false;
+        }
+
+        private void Run_onClientGameOverGlobal(Run run, RunReport runReport)
+        {
+            isCapturing = false;
         }
 
         private void SurvivorIconController_Awake(On.RoR2.UI.SurvivorIconController.orig_Awake orig, SurvivorIconController self)
@@ -41,8 +54,7 @@ namespace RoR2DropInMultiplayerHelper
         public void OnClick(SurvivorDef survivorDef, LocalUser localUser)
         {
             RoR2.Console.instance.SubmitCmd(localUser.currentNetworkUser, "say \"/join_as " + survivorDef.cachedName + "\"", true);
-            if (displayInstance)
-                UnityEngine.Object.Destroy(displayInstance);
+            DestroyDisplayInstance();
         }
 
         private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
@@ -65,13 +77,21 @@ namespace RoR2DropInMultiplayerHelper
             self.fillerIcons.AllocateElements(desiredCount);
             self.fillerIcons.MoveElementsToContainerEnd();
             ReadOnlyCollection<SurvivorIconController> elements = self.survivorIconControllers.elements;
+            int i = 0;
+            foreach (var (survivorDef2, survivorIconController) in list.Zip(elements, (survivorDef2, survivorIconController) => (survivorDef2, survivorIconController)))
+            {
+                survivorIconController.survivorDef = survivorDef2;
+                survivorIconController.hgButton.defaultFallbackButton = (i == 0);
+                i++;
+            }
+            /*ReadOnlyCollection<SurvivorIconController> elements = self.survivorIconControllers.elements;
             for (int i = 0; i < count; i++)
             {
                 SurvivorDef survivorDef2 = list[i];
                 SurvivorIconController survivorIconController = elements[i];
                 survivorIconController.survivorDef = survivorDef2;
                 survivorIconController.hgButton.defaultFallbackButton = (i == 0);
-            }
+            }*/
         }
 
         public static bool isCapturing = false;
@@ -114,8 +134,10 @@ namespace RoR2DropInMultiplayerHelper
 
         public static void EvaluateCapturedString(string capturedString)
         {
-            allowedSurvivorDefs.Clear();
             MatchCollection matches = Regex.Matches(capturedString, pattern);
+            if (matches.Count == 0)
+                return;
+            allowedSurvivorDefs.Clear();
             foreach (Match match in matches)
             {
                 var sel = match.Groups[1].Value;
@@ -130,9 +152,16 @@ namespace RoR2DropInMultiplayerHelper
             Array.Sort<SurvivorDef>(allowedSurvivorDefsOrdered, (SurvivorDef a, SurvivorDef b) => a.desiredSortPosition.CompareTo(b.desiredSortPosition));
         }
 
+        public static void DestroyDisplayInstance()
+        {
+            if (displayInstance)
+                UnityEngine.Object.Destroy(displayInstance);
+        }
+
         public static void DisplayCharacters()
         {
             if (displayInstance) return;
+            if (allowedSurvivorDefs.Count == 0) return;
             var prefab = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/CharacterSelectUI.prefab").WaitForCompletion();
             //var chose = prefab.transform.Find("SafeArea/LeftHandPanel (Layer: Main)/SurvivorChoiceGrid, Panel/");
             var copy = UnityEngine.Object.Instantiate(prefab);
