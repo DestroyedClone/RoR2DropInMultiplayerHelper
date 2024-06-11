@@ -4,6 +4,7 @@ using RoR2;
 using RoR2.UI;
 using System.Security;
 using System.Security.Permissions;
+using System.Collections.Generic;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -22,6 +23,23 @@ namespace RoR2DropInMultiplayerHelper
             On.RoR2.Chat.AddMessage_ChatMessageBase += Chat_AddMessage_ChatMessageBase;
             On.RoR2.UI.SurvivorIconController.Awake += SurvivorIconController_Awake;
             Run.onClientGameOverGlobal += Run_onClientGameOverGlobal;
+            //On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
+        }
+
+        private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
+        {
+            orig(self);
+            var localMaster = self.currentLocalUser.cachedMaster;
+            if (!localMaster) return;
+            /* doesnt work
+            foreach (var icon in self.survivorIconControllers.elements)
+            {
+                if (icon.survivorDef.survivorIndex == SurvivorCatalog.GetSurvivorIndexFromBodyIndex(self.currentLocalUser.currentNetworkUser.bodyIndexPreference))
+                {
+                    icon.gameObject.SetActive(false);
+                    break;
+                }
+            }*/
         }
 
         private void Run_onClientGameOverGlobal(Run run, RunReport runReport)
@@ -41,6 +59,11 @@ namespace RoR2DropInMultiplayerHelper
 
         public void OnClick(SurvivorDef survivorDef, LocalUser localUser)
         {
+            //Logger.LogMessage($"{localUser.currentNetworkUser.bodyIndexPreference} vs {SurvivorCatalog.GetBodyIndexFromSurvivorIndex(survivorDef.survivorIndex)}");
+            if (localUser.cachedMaster && localUser.currentNetworkUser.bodyIndexPreference == SurvivorCatalog.GetBodyIndexFromSurvivorIndex(survivorDef.survivorIndex))
+            {
+                return;
+            }
             RoR2.Console.instance.SubmitCmd(localUser.currentNetworkUser, "say \"/join_as " + survivorDef.cachedName + "\"", true);
             DestroyDisplayInstance();
         }

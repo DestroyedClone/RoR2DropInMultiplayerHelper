@@ -10,9 +10,14 @@ This mod is compatible with ScrollableLobbyUI.
 
 ## Features
  - `/list_survivors` - Opens a menu of selectable survivors. Click on a survivor to automatically use `/join_as` on them.
+	 - Open your scoreboard to expose your cursor so that you can click on it.
 	 - Press `Esc` to close the menu early.
+	 - Does not activate if you click on a survivor that you already are.
 
 ## Known Issues
 - LobbyAppearanceImprovements (v1.2.0) will print out an error whenever the character select UI is spawned ingame
+
+## Planned
+- Hide selected survivor instead of disabling click
 
 > Written with [StackEdit](https://stackedit.io/).
