@@ -2,13 +2,8 @@
 using UnityEngine;
 using RoR2;
 using RoR2.UI;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Security;
 using System.Security.Permissions;
-using System.Text.RegularExpressions;
-using System.Linq;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,20 +20,12 @@ namespace RoR2DropInMultiplayerHelper
         public void Awake()
         {
             On.RoR2.Chat.AddMessage_ChatMessageBase += Chat_AddMessage_ChatMessageBase;
-            On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
             On.RoR2.UI.SurvivorIconController.Awake += SurvivorIconController_Awake;
             Run.onClientGameOverGlobal += Run_onClientGameOverGlobal;
-            Stage.onStageStartGlobal += Stage_onStageStartGlobal;
-        }
-
-        private void Stage_onStageStartGlobal(Stage obj)
-        {
-            isCapturing = false;
         }
 
         private void Run_onClientGameOverGlobal(Run run, RunReport runReport)
         {
-            isCapturing = false;
             DestroyDisplayInstance();
         }
 
@@ -58,99 +45,19 @@ namespace RoR2DropInMultiplayerHelper
             DestroyDisplayInstance();
         }
 
-        private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
-        {
-            orig(self);
-            if (!Run.instance) return;
-            if (allowedSurvivorDefs.Count == 0) return;
-
-            List<SurvivorDef> list = new List<SurvivorDef>();
-            foreach (SurvivorDef survivorDef in allowedSurvivorDefsOrdered)
-            {
-                if (self.ShouldDisplaySurvivor(survivorDef))
-                {
-                    list.Add(survivorDef);
-                }
-            }
-            int count = list.Count;
-            int desiredCount = Math.Max(CharacterSelectBarController.CalcGridCellCount(count, self.iconContainerGrid.constraintCount) - count, 0);
-            self.survivorIconControllers.AllocateElements(count);
-            self.fillerIcons.AllocateElements(desiredCount);
-            self.fillerIcons.MoveElementsToContainerEnd();
-            ReadOnlyCollection<SurvivorIconController> elements = self.survivorIconControllers.elements;
-            int i = 0;
-            foreach (var (survivorDef2, survivorIconController) in list.Zip(elements, (survivorDef2, survivorIconController) => (survivorDef2, survivorIconController)))
-            {
-                survivorIconController.survivorDef = survivorDef2;
-                survivorIconController.hgButton.defaultFallbackButton = (i == 0);
-                i++;
-            }
-            /*ReadOnlyCollection<SurvivorIconController> elements = self.survivorIconControllers.elements;
-            for (int i = 0; i < count; i++)
-            {
-                SurvivorDef survivorDef2 = list[i];
-                SurvivorIconController survivorIconController = elements[i];
-                survivorIconController.survivorDef = survivorDef2;
-                survivorIconController.hgButton.defaultFallbackButton = (i == 0);
-            }*/
-        }
-
-        public static bool isCapturing = false;
-        public static List<SurvivorDef> allowedSurvivorDefs = new List<SurvivorDef>();
-        public static SurvivorDef[] allowedSurvivorDefsOrdered = new SurvivorDef[] { };
         public static GameObject displayInstance = null;
 
         private void Chat_AddMessage_ChatMessageBase(On.RoR2.Chat.orig_AddMessage_ChatMessageBase orig, ChatMessageBase message)
         {
             orig(message);
-            /*Logger.LogMessage($"isUserChat {message is Chat.UserChatMessage} | isSimpleChat {message is Chat.SimpleChatMessage}");
-            if (message is Chat.UserChatMessage wop)
-            {
-                Logger.LogMessage($"Message: {wop.text} | matches Token?: {wop.text.ToUpperInvariant() == "/LIST_SURVIVORS"}");
-                Logger.LogMessage($"Sender: {wop.sender.GetComponent<NetworkUser>().GetNetworkPlayerName()} | Localuser: {LocalUserManager.GetFirstLocalUser().currentNetworkUser.GetNetworkPlayerName()}");
-            }*/
-            if (!isCapturing && message is Chat.UserChatMessage chatMsg)
+            if (message is Chat.UserChatMessage chatMsg)
             {
                 if (chatMsg.sender == LocalUserManager.GetFirstLocalUser().currentNetworkUser.gameObject && chatMsg.text.ToUpperInvariant() == "/LIST_SURVIVORS")
                 {
-                    isCapturing = true;
-                    Logger.LogMessage($"Capturing...");
+                    DisplayCharacters();
                     return;
                 }
             }
-            if (isCapturing && message is Chat.SimpleChatMessage simpleMsg)
-            {
-                var baseToken = simpleMsg.baseToken;
-                if (baseToken.Contains("(") && baseToken.Contains(")") && baseToken.Contains(", "))
-                {
-                    Logger.LogMessage($"Captured message:\n{baseToken}");
-                    isCapturing = false;
-                    EvaluateCapturedString(baseToken);
-                    DisplayCharacters();
-                }
-            }
-        }
-
-        private const string pattern = @"(\w+)\s+\(\w+\)";
-
-        public static void EvaluateCapturedString(string capturedString)
-        {
-            MatchCollection matches = Regex.Matches(capturedString, pattern);
-            if (matches.Count == 0)
-                return;
-            allowedSurvivorDefs.Clear();
-            foreach (Match match in matches)
-            {
-                var sel = match.Groups[1].Value;
-                var def = SurvivorCatalog.FindSurvivorDef(sel);
-                if (def)
-                {
-                    allowedSurvivorDefs.Add(def);
-                }
-            }
-            //copying code moment
-            allowedSurvivorDefsOrdered = allowedSurvivorDefs.ToArray();
-            Array.Sort<SurvivorDef>(allowedSurvivorDefsOrdered, (SurvivorDef a, SurvivorDef b) => a.desiredSortPosition.CompareTo(b.desiredSortPosition));
         }
 
         public static void DestroyDisplayInstance()
@@ -162,7 +69,6 @@ namespace RoR2DropInMultiplayerHelper
         public static void DisplayCharacters()
         {
             if (displayInstance) return;
-            if (allowedSurvivorDefs.Count == 0) return;
             var prefab = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/CharacterSelectUI.prefab").WaitForCompletion();
             //var chose = prefab.transform.Find("SafeArea/LeftHandPanel (Layer: Main)/SurvivorChoiceGrid, Panel/");
             var copy = UnityEngine.Object.Instantiate(prefab);
@@ -206,7 +112,7 @@ namespace RoR2DropInMultiplayerHelper
             }
         }
 
-        [ConCommand(commandName = "spawn", flags = ConVarFlags.None, helpText = "Help text goes here")]
+        //[ConCommand(commandName = "spawn", flags = ConVarFlags.None, helpText = "Help text goes here")]
         public static void CCSpawnPrefab(ConCommandArgs args)
         {
             var obj = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>(args.GetArgString(0)).WaitForCompletion();
@@ -217,7 +123,7 @@ namespace RoR2DropInMultiplayerHelper
             }
         }
 
-        [ConCommand(commandName = "spawnui", flags = ConVarFlags.None, helpText = "Help text goes here")]
+        //[ConCommand(commandName = "spawnui", flags = ConVarFlags.None, helpText = "Help text goes here")]
         public static void CCSpawnPrefabOnCanvas(ConCommandArgs args)
         {
             var obj = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>(args.GetArgString(0)).WaitForCompletion();
