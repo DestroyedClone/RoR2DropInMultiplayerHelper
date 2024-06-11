@@ -1,0 +1,10 @@
+﻿{
+  "name": "DropInMultiplayer_GUI",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/DestroyedClone/RoR2DropInMultiplayerHelper/tree/master/RoR2DropInMultiplayerHelper",
+  "description": "Client-side GUI for DropIn Multiplayer.",
+  "dependencies": [
+    "bbepis-BepInExPack-5.4.2114",
+    "niwith-DropinMultiplayer-3.0.0"
+  ]
+}
