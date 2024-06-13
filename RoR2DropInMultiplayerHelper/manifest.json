@@ -1,6 +1,6 @@
 ﻿{
   "name": "DropInMultiplayer_GUI",
-  "version_number": "1.0.0",
+  "version_number": "1.0.1",
   "website_url": "https://github.com/DestroyedClone/RoR2DropInMultiplayerHelper/tree/master/RoR2DropInMultiplayerHelper",
   "description": "Client-side GUI for DropIn Multiplayer.",
   "dependencies": [

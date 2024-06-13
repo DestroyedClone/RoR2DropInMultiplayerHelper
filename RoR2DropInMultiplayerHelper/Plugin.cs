@@ -14,7 +14,7 @@ using System.Security.Permissions;
 
 namespace RoR2DropInMultiplayerHelper
 {
-    [BepInPlugin("com.DestroyedClone.DropInMultiplayerHelper", "Drop In Multiplayer Helper", "0.0.0")]
+    [BepInPlugin("com.DestroyedClone.DropInMultiplayerHelper", "Drop In Multiplayer Helper", "1.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         public void Awake()
@@ -61,6 +61,7 @@ namespace RoR2DropInMultiplayerHelper
             //Logger.LogMessage($"{localUser.currentNetworkUser.bodyIndexPreference} vs {SurvivorCatalog.GetBodyIndexFromSurvivorIndex(survivorDef.survivorIndex)}");
             if (localUser.cachedMaster && localUser.currentNetworkUser.bodyIndexPreference == SurvivorCatalog.GetBodyIndexFromSurvivorIndex(survivorDef.survivorIndex))
             {
+                DestroyDisplayInstance();
                 return;
             }
             RoR2.Console.instance.SubmitCmd(localUser.currentNetworkUser, "say \"/join_as " + survivorDef.cachedName + "\"", true);
