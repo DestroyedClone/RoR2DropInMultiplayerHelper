@@ -4,7 +4,6 @@ using RoR2;
 using RoR2.UI;
 using System.Security;
 using System.Security.Permissions;
-using System.Collections.Generic;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -26,12 +25,12 @@ namespace RoR2DropInMultiplayerHelper
             //On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
         }
 
-        private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
+        /*private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
         {
             orig(self);
             var localMaster = self.currentLocalUser.cachedMaster;
             if (!localMaster) return;
-            /* doesnt work
+            // doesnt work
             foreach (var icon in self.survivorIconControllers.elements)
             {
                 if (icon.survivorDef.survivorIndex == SurvivorCatalog.GetSurvivorIndexFromBodyIndex(self.currentLocalUser.currentNetworkUser.bodyIndexPreference))
@@ -39,8 +38,8 @@ namespace RoR2DropInMultiplayerHelper
                     icon.gameObject.SetActive(false);
                     break;
                 }
-            }*/
-        }
+            }
+        }*/
 
         private void Run_onClientGameOverGlobal(Run run, RunReport runReport)
         {
