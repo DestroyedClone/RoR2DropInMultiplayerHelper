@@ -1,30 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using RoR2;
 using System.Runtime.CompilerServices;
-using System.Text;
-using BepInEx.Configuration;
-using RoR2;
 
 namespace RoR2DropInMultiplayerHelper
 {
     internal class ModCompat
     {
         public static bool loaded_Survariants = false;
-        public static void Init(ConfigFile Config)
+
+        public static void Init()
         {
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("pseudopulse.Survariants"))
             {
-                Init_Survariants();
+                loaded_Survariants = true;
             }
         }
-
-        //attr
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static void Init_Survariants()
-        {
-            loaded_Survariants = true;
-        }
-
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static bool Survariants_IsVariant(SurvivorDef survivorDef)

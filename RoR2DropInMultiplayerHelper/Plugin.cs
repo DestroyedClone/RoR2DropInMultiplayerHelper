@@ -4,9 +4,6 @@ using RoR2;
 using RoR2.UI;
 using System.Security;
 using System.Security.Permissions;
-using System.Collections.Generic;
-using System;
-using System.Collections.ObjectModel;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -26,11 +23,10 @@ namespace RoR2DropInMultiplayerHelper
             On.RoR2.Chat.AddMessage_ChatMessageBase += Chat_AddMessage_ChatMessageBase;
             On.RoR2.UI.SurvivorIconController.Awake += SurvivorIconController_Awake;
             Run.onClientGameOverGlobal += Run_onClientGameOverGlobal;
-            //On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
             On.RoR2.CharacterSelectBarController.ShouldDisplaySurvivor += CharacterSelectBarController_ShouldDisplaySurvivor;
             On.RoR2.Console.SubmitCmd_CmdSender_string_bool += Console_SubmitCmd_CmdSender_string_bool;
 
-            ModCompat.Init(Config);
+            ModCompat.Init();
         }
 
         private void Console_SubmitCmd_CmdSender_string_bool(On.RoR2.Console.orig_SubmitCmd_CmdSender_string_bool orig, RoR2.Console self, RoR2.Console.CmdSender sender, string cmd, bool recordSubmit)
@@ -56,44 +52,6 @@ namespace RoR2DropInMultiplayerHelper
             return orig(self, survivorDef);
         }
 
-        /*private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
-        {
-            orig(self);
-            var localMaster = self.currentLocalUser.cachedMaster;
-            if (!localMaster) return;
-            // doesnt work
-            foreach (var icon in self.survivorIconControllers.elements)
-            {
-                if (icon.survivorDef.survivorIndex == SurvivorCatalog.GetSurvivorIndexFromBodyIndex(self.currentLocalUser.currentNetworkUser.bodyIndexPreference))
-                {
-                    icon.gameObject.SetActive(false);
-                    break;
-                }
-            }
-
-        List<SurvivorDef> list = new List<SurvivorDef>();
-            foreach (SurvivorDef survivorDef in SurvivorCatalog.orderedSurvivorDefs)
-            {
-                if (self.ShouldDisplaySurvivor(survivorDef))
-                {
-                    list.Add(survivorDef);
-                }
-            }
-            int count = list.Count;
-            int desiredCount = Math.Max(CharacterSelectBarController.CalcGridCellCount(count, self.iconContainerGrid.constraintCount) - count, 0);
-            self.survivorIconControllers.AllocateElements(count);
-            self.fillerIcons.AllocateElements(desiredCount);
-            self.fillerIcons.MoveElementsToContainerEnd();
-            ReadOnlyCollection<SurvivorIconController> elements = self.survivorIconControllers.elements;
-            for (int i = 0; i < count; i++)
-            {
-                SurvivorDef survivorDef2 = list[i];
-                SurvivorIconController survivorIconController = elements[i];
-                survivorIconController.survivorDef = survivorDef2;
-                survivorIconController.hgButton.defaultFallbackButton = (i == 0);
-            }
-        }*/
-
         private void Run_onClientGameOverGlobal(Run run, RunReport runReport)
         {
             DestroyDisplayInstance();
@@ -111,7 +69,6 @@ namespace RoR2DropInMultiplayerHelper
 
         public void OnClick(SurvivorDef survivorDef, LocalUser localUser)
         {
-            //Logger.LogMessage($"{localUser.currentNetworkUser.bodyIndexPreference} vs {SurvivorCatalog.GetBodyIndexFromSurvivorIndex(survivorDef.survivorIndex)}");
             if (localUser.cachedMaster && localUser.currentNetworkUser.bodyIndexPreference == SurvivorCatalog.GetBodyIndexFromSurvivorIndex(survivorDef.survivorIndex))
             {
                 DestroyDisplayInstance();
@@ -186,26 +143,6 @@ namespace RoR2DropInMultiplayerHelper
                 if (Input.GetKey(KeyCode.Escape))
                     Destroy(gameObject);
             }
-        }
-
-        //[ConCommand(commandName = "spawn", flags = ConVarFlags.None, helpText = "Help text goes here")]
-        public static void CCSpawnPrefab(ConCommandArgs args)
-        {
-            var obj = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>(args.GetArgString(0)).WaitForCompletion();
-            var copy = UnityEngine.Object.Instantiate(obj);
-            if (args.senderBody)
-            {
-                copy.transform.position = args.senderBody.transform.position;
-            }
-        }
-
-        //[ConCommand(commandName = "spawnui", flags = ConVarFlags.None, helpText = "Help text goes here")]
-        public static void CCSpawnPrefabOnCanvas(ConCommandArgs args)
-        {
-            var obj = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>(args.GetArgString(0)).WaitForCompletion();
-            var copy = UnityEngine.Object.Instantiate(obj);
-            copy.transform.parent = RoR2.UI.AchievementNotificationPanel.GetUserCanvas(LocalUserManager.GetFirstLocalUser()).transform;
-            copy.transform.localPosition = Vector3.zero;
         }
     }
 }
