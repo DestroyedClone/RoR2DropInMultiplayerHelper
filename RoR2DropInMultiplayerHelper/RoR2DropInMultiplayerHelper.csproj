@@ -23,4 +23,9 @@
 			<NoWarn>NU1701</NoWarn>
 		</PackageReference>
 	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="Survariants">
+	    <HintPath>lib\Survariants.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
 </Project>

@@ -18,6 +18,7 @@ using System.Collections.ObjectModel;
 namespace RoR2DropInMultiplayerHelper
 {
     [BepInPlugin("com.DestroyedClone.DropInMultiplayerHelper", "Drop In Multiplayer Helper", "1.0.1")]
+    [BepInDependency("pseudopulse.Survariants", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         public void Awake()
@@ -28,6 +29,8 @@ namespace RoR2DropInMultiplayerHelper
             //On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
             On.RoR2.CharacterSelectBarController.ShouldDisplaySurvivor += CharacterSelectBarController_ShouldDisplaySurvivor;
             On.RoR2.Console.SubmitCmd_CmdSender_string_bool += Console_SubmitCmd_CmdSender_string_bool;
+
+            ModCompat.Init(Config);
         }
 
         private void Console_SubmitCmd_CmdSender_string_bool(On.RoR2.Console.orig_SubmitCmd_CmdSender_string_bool orig, RoR2.Console self, RoR2.Console.CmdSender sender, string cmd, bool recordSubmit)
@@ -46,7 +49,7 @@ namespace RoR2DropInMultiplayerHelper
 
         private bool CharacterSelectBarController_ShouldDisplaySurvivor(On.RoR2.CharacterSelectBarController.orig_ShouldDisplaySurvivor orig, CharacterSelectBarController self, SurvivorDef survivorDef)
         {
-            if (Run.instance)
+            if (Run.instance && ModCompat.loaded_Survariants && ModCompat.Survariants_IsVariant(survivorDef))
             {
                 return true;
             }
