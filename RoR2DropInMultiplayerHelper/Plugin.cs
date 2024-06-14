@@ -4,6 +4,9 @@ using RoR2;
 using RoR2.UI;
 using System.Security;
 using System.Security.Permissions;
+using System.Collections.Generic;
+using System;
+using System.Collections.ObjectModel;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -23,6 +26,31 @@ namespace RoR2DropInMultiplayerHelper
             On.RoR2.UI.SurvivorIconController.Awake += SurvivorIconController_Awake;
             Run.onClientGameOverGlobal += Run_onClientGameOverGlobal;
             //On.RoR2.CharacterSelectBarController.Build += CharacterSelectBarController_Build;
+            On.RoR2.CharacterSelectBarController.ShouldDisplaySurvivor += CharacterSelectBarController_ShouldDisplaySurvivor;
+            On.RoR2.Console.SubmitCmd_CmdSender_string_bool += Console_SubmitCmd_CmdSender_string_bool;
+        }
+
+        private void Console_SubmitCmd_CmdSender_string_bool(On.RoR2.Console.orig_SubmitCmd_CmdSender_string_bool orig, RoR2.Console self, RoR2.Console.CmdSender sender, string cmd, bool recordSubmit)
+        {
+            //Console.instance.SubmitCmd(null, "pause", false);
+            if (cmd == "pause" && !recordSubmit)
+            {
+                if (displayInstance)
+                {
+                    DestroyDisplayInstance();
+                    return;
+                }
+            }
+            orig(self, sender, cmd, recordSubmit);
+        }
+
+        private bool CharacterSelectBarController_ShouldDisplaySurvivor(On.RoR2.CharacterSelectBarController.orig_ShouldDisplaySurvivor orig, CharacterSelectBarController self, SurvivorDef survivorDef)
+        {
+            if (Run.instance)
+            {
+                return true;
+            }
+            return orig(self, survivorDef);
         }
 
         /*private void CharacterSelectBarController_Build(On.RoR2.CharacterSelectBarController.orig_Build orig, CharacterSelectBarController self)
@@ -38,6 +66,28 @@ namespace RoR2DropInMultiplayerHelper
                     icon.gameObject.SetActive(false);
                     break;
                 }
+            }
+
+        List<SurvivorDef> list = new List<SurvivorDef>();
+            foreach (SurvivorDef survivorDef in SurvivorCatalog.orderedSurvivorDefs)
+            {
+                if (self.ShouldDisplaySurvivor(survivorDef))
+                {
+                    list.Add(survivorDef);
+                }
+            }
+            int count = list.Count;
+            int desiredCount = Math.Max(CharacterSelectBarController.CalcGridCellCount(count, self.iconContainerGrid.constraintCount) - count, 0);
+            self.survivorIconControllers.AllocateElements(count);
+            self.fillerIcons.AllocateElements(desiredCount);
+            self.fillerIcons.MoveElementsToContainerEnd();
+            ReadOnlyCollection<SurvivorIconController> elements = self.survivorIconControllers.elements;
+            for (int i = 0; i < count; i++)
+            {
+                SurvivorDef survivorDef2 = list[i];
+                SurvivorIconController survivorIconController = elements[i];
+                survivorIconController.survivorDef = survivorDef2;
+                survivorIconController.hgButton.defaultFallbackButton = (i == 0);
             }
         }*/
 
